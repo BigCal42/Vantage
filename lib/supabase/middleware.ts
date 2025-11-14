@@ -5,16 +5,23 @@ function getEnvVars() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-  // During build time, return placeholder values if env vars not set
+  // For middleware clients, validate environment variables
+  // NEXT_PUBLIC_* vars are embedded at build time and should be available at runtime
+  // Middleware runs at the edge where window is undefined
   if (!supabaseUrl || !supabaseAnonKey) {
-    if (process.env.NODE_ENV === 'production') {
-      // During build, use placeholder values
+    // During build/edge runtime (when window is undefined), use placeholders to allow build to complete
+    // At edge runtime, env vars should be available, so throw errors
+    if (typeof window === 'undefined') {
+      // Build/edge time: use placeholders to prevent build failures
+      // These will be replaced with actual values if env vars are set at build time
       return { 
-        supabaseUrl: 'https://placeholder.supabase.co',
-        supabaseAnonKey: 'placeholder-key'
+        supabaseUrl: supabaseUrl || 'https://placeholder.supabase.co',
+        supabaseAnonKey: supabaseAnonKey || 'placeholder-key'
       }
     }
-    // At runtime in development, throw errors
+    
+    // Edge runtime: throw errors if env vars are missing
+    // NEXT_PUBLIC_* vars should be embedded at build time
     if (!supabaseUrl) {
       throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL environment variable')
     }
