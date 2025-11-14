@@ -3,8 +3,8 @@ docs/
 *.md
 !README.md
 
-# Supabase (not needed for build)
-supabase/
+# Supabase migrations (root folder only, keep lib/supabase for runtime)
+/supabase/
 
 # Tests
 **/*.test.ts

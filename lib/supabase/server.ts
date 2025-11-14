@@ -12,10 +12,10 @@ function getEnvVars() {
     // At server runtime, env vars should be available, so throw errors
     if (typeof window === 'undefined') {
       // Build/SSR time: use placeholders to prevent build failures
-      // These will be replaced with actual values if env vars are set at build time
+      // Return both placeholders if either value is missing to avoid mismatched credentials
       return { 
-        supabaseUrl: supabaseUrl || 'https://placeholder.supabase.co',
-        supabaseAnonKey: supabaseAnonKey || 'placeholder-key'
+        supabaseUrl: 'https://placeholder.supabase.co',
+        supabaseAnonKey: 'placeholder-key'
       }
     }
     
