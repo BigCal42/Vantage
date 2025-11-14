@@ -40,11 +40,21 @@ const nextConfig = {
   
   // Webpack optimizations for faster builds
   webpack: (config, { isServer }) => {
-    // Optimize package imports
+    // Configure path aliases - ensure @ resolves to project root
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': resolve(__dirname),
     }
+    
+    // Ensure TypeScript/JavaScript extensions are resolved
+    config.resolve.extensions = [
+      '.tsx',
+      '.ts',
+      '.jsx',
+      '.js',
+      '.json',
+      ...(config.resolve.extensions || []),
+    ]
     
     // Optimize large dependencies (client-side only)
     if (!isServer) {
