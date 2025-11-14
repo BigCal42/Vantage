@@ -24,20 +24,21 @@ GITHUB_OWNER=BigCal42
 # Get token from: https://vercel.com/account/tokens
 # Get project/org IDs from: vercel project ls && vercel teams ls
 VERCEL_TOKEN=your_vercel_api_token_here
-VERCEL_PROJECT_ID=prj_your_vercel_project_id
+VERCEL_PROJECT_ID=prj_S1hxyqy8Uc6nr0iZgBPVG7Z3PeeT
 VERCEL_ORG_ID=team_your_vercel_org_id
 
 # ============================================
 # Supabase Configuration
 # ============================================
 # Get from: https://app.supabase.com/project/_/settings/api
-NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+# Project Reference: pxxorhixbsbsonjaygkb
+NEXT_PUBLIC_SUPABASE_URL=https://xndisymquphjencoyrbb.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_public_key_here
 SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key_here
 
 # Database connection string (from Settings > Database)
 # Replace [YOUR-PASSWORD] with your actual database password
-SUPABASE_DB_URL=postgresql://postgres:[YOUR-PASSWORD]@db.[project-ref].supabase.co:5432/postgres
+SUPABASE_DB_URL=postgresql://postgres:[YOUR-PASSWORD]@db.xndisymquphjencoyrbb.supabase.co:5432/postgres
 
 # ============================================
 # General Configuration
