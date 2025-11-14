@@ -40,3 +40,26 @@ next-env.d.ts
 # Cursor
 .cursor
 .cursorignore
+.cursorrules
+
+# Internal documentation
+docs/
+QUICKSTART.md
+CONNECTION_STATUS.md
+DEPLOYMENT_FIX_SUMMARY.md
+*_SUMMARY.md
+*_STATUS.md
+
+# MCP and internal config
+mcp-config.json
+
+# Test files
+tests/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+vitest.config.ts
+
+# Scripts
+scripts/

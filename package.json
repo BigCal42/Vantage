@@ -1,7 +1,10 @@
 {
-  "name": "my-v0-project",
-  "version": "0.1.0",
+  "name": "vantage",
+  "version": "1.0.0",
+  "description": "AI-powered transformation intelligence platform for healthcare systems",
   "private": true,
+  "author": "Vantage Team",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,10 +12,6 @@
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "type-check": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "test:ui": "vitest --ui",
-    "test:connections": "tsx scripts/test-connections.ts",
     "db:push": "supabase db push",
     "db:seed": "supabase db remote commit --file supabase/seed.sql"
   },

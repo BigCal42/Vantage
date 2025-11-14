@@ -1,24 +1,41 @@
-## 🎯 What does this PR do?
+## Description
 
-Brief description of changes
+<!-- Provide a brief description of the changes in this PR -->
 
-## 🧪 How to test
+## Type of Change
 
-1. Steps to verify changes
-2. Expected behavior
+- [ ] Bug fix (non-breaking change which fixes an issue)
+- [ ] New feature (non-breaking change which adds functionality)
+- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
+- [ ] Documentation update
+- [ ] Performance improvement
+- [ ] Code refactoring
 
-## ✅ Checklist
+## Testing
 
-- [ ] TypeScript compiles with no errors
-- [ ] Responsive on mobile (375px width tested)
-- [ ] Keyboard accessible (tab navigation works)
-- [ ] Loading states implemented
-- [ ] Error states handled
-- [ ] No console errors
-- [ ] Follows design system (spacing, typography, colors)
-- [ ] Performance: No layout shift, <200ms interactions
+<!-- Describe the tests you ran to verify your changes -->
 
-## 📸 Screenshots
+- [ ] Local development testing
+- [ ] Build succeeds (`npm run build`)
+- [ ] Type checking passes (`npm run type-check`)
+- [ ] Linting passes (`npm run lint`)
+- [ ] Manual testing completed
 
-(if applicable)
+## Screenshots
 
+<!-- If applicable, add screenshots to help explain your changes -->
+
+## Checklist
+
+- [ ] My code follows the project's style guidelines
+- [ ] I have performed a self-review of my own code
+- [ ] I have commented my code where necessary
+- [ ] My changes generate no new warnings or errors
+- [ ] Any dependent changes have been merged and published
+- [ ] I have updated the documentation accordingly
+
+## Related Issues
+
+<!-- Link any related issues here using #issue-number -->
+
+Closes #
