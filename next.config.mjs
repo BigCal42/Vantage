@@ -34,12 +34,9 @@ const nextConfig = {
     },
   },
   
-  // Turbopack config - ensure path aliases are resolved
-  turbopack: {
-    resolveAlias: {
-      '@': __dirname,
-    },
-  },
+  // Turbopack config - path aliases are automatically read from tsconfig.json
+  // No explicit config needed, but empty object ensures Turbopack is enabled
+  turbopack: {},
   
   // Webpack optimizations for faster builds
   webpack: (config, { isServer }) => {
