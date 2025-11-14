@@ -34,20 +34,27 @@ const nextConfig = {
     },
   },
   
-  // Turbopack config - ensure path aliases are resolved
-  turbopack: {
-    resolveAlias: {
-      '@': __dirname,
-    },
-  },
+  // Turbopack config - empty object to allow webpack config
+  // Turbopack has path alias resolution issues on Vercel, so webpack is used
+  turbopack: {},
   
   // Webpack optimizations for faster builds
   webpack: (config, { isServer }) => {
-    // Optimize package imports
+    // Configure path aliases - ensure @ resolves to project root
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': resolve(__dirname),
     }
+    
+    // Ensure TypeScript/JavaScript extensions are resolved
+    config.resolve.extensions = [
+      '.tsx',
+      '.ts',
+      '.jsx',
+      '.js',
+      '.json',
+      ...(config.resolve.extensions || []),
+    ]
     
     // Optimize large dependencies (client-side only)
     if (!isServer) {
