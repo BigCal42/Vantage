@@ -1,3 +1,9 @@
+import { fileURLToPath } from 'url'
+import { dirname, resolve } from 'path'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Production optimizations
@@ -28,15 +34,19 @@ const nextConfig = {
     },
   },
   
-  // Turbopack config (empty to acknowledge webpack usage is intentional)
-  turbopack: {},
+  // Turbopack config - ensure path aliases are resolved
+  turbopack: {
+    resolveAlias: {
+      '@': __dirname,
+    },
+  },
   
   // Webpack optimizations for faster builds
   webpack: (config, { isServer }) => {
     // Optimize package imports
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': __dirname,
+      '@': resolve(__dirname),
     }
     
     // Optimize large dependencies (client-side only)
