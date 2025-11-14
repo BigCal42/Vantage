@@ -48,7 +48,7 @@ export function createMiddlewareClient(
     },
   })
 
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
+  const supabase = createServerClient(supabaseUrl as string, supabaseAnonKey as string, {
     cookies: {
       get(name: string) {
         return request.cookies.get(name)?.value

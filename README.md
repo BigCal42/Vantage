@@ -85,23 +85,80 @@ npm run lint
 
 ## Deployment
 
-### Deploy to Vercel
+### Prerequisites
+
+Before deploying, ensure you have:
+
+1. **Supabase Project** - Create a project at [supabase.com](https://supabase.com)
+2. **Vercel Account** - Sign up at [vercel.com](https://vercel.com)
+3. **GitHub Repository** - Push your code to GitHub
+
+### Step 1: Set Up Supabase Database
+
+1. Create a new Supabase project at https://app.supabase.com
+2. Navigate to SQL Editor and run the migration from `supabase/migrations/0001_core_schema.sql`
+3. Copy your project URL and anon key from Settings > API
+
+### Step 2: Deploy to Vercel
+
+#### Option A: One-Click Deploy
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/BigCal42/Vantage)
 
-Or manually:
+#### Option B: Manual Deployment
 
 ```bash
 # Install Vercel CLI
 npm i -g vercel
 
-# Deploy
+# Login to Vercel
+vercel login
+
+# Deploy (follow prompts)
 vercel
+
+# Deploy to production
+vercel --prod
 ```
 
-### Environment Setup
+### Step 3: Configure Environment Variables
 
-Ensure all required environment variables are configured in your Vercel project settings before deployment.
+In your Vercel project settings, add the following environment variables:
+
+**Required:**
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon/public key
+
+**Optional:**
+- `NEXT_PUBLIC_APP_URL` - Your production domain (e.g., `https://your-app.vercel.app`)
+- `SUPABASE_SERVICE_ROLE_KEY` - For admin operations (server-side only)
+- `GITHUB_TOKEN` - For GitHub API integrations
+
+### Step 4: Verify Deployment
+
+After deployment:
+
+1. Visit your Vercel deployment URL
+2. Check build logs for any errors
+3. Verify database connectivity by testing API routes
+4. Monitor function logs in Vercel dashboard
+
+### Troubleshooting
+
+**Build Fails:**
+- Ensure all environment variables are set in Vercel dashboard
+- Check build logs for specific error messages
+- Verify `package.json` dependencies are compatible
+
+**Database Connection Errors:**
+- Verify Supabase URL and keys are correct
+- Check Supabase project is active and not paused
+- Ensure RLS policies allow public access (for demo) or configure proper auth
+
+**Function Timeouts:**
+- Check `vercel.json` function timeout settings
+- Optimize slow database queries
+- Consider using Edge Functions for faster response times
 
 ## Architecture
 

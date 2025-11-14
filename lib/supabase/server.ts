@@ -30,7 +30,7 @@ export async function createClient() {
   const { supabaseUrl, supabaseAnonKey } = getEnvVars()
   const cookieStore = await cookies()
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
+  return createServerClient(supabaseUrl as string, supabaseAnonKey as string, {
     cookies: {
       get(name: string) {
         return cookieStore.get(name)?.value

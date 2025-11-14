@@ -27,5 +27,5 @@ function getEnvVars() {
 
 export function createClient() {
   const { supabaseUrl, supabaseAnonKey } = getEnvVars()
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return createBrowserClient(supabaseUrl as string, supabaseAnonKey as string)
 }
