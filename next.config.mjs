@@ -34,8 +34,8 @@ const nextConfig = {
     },
   },
   
-  // Turbopack config - path aliases are automatically read from tsconfig.json
-  // No explicit config needed, but empty object ensures Turbopack is enabled
+  // Turbopack config - empty object to allow webpack config
+  // Turbopack has path alias resolution issues on Vercel, so webpack is used
   turbopack: {},
   
   // Webpack optimizations for faster builds
