@@ -13,7 +13,8 @@ You are setting up **Vantage Mission Control** - the AI-powered transformation i
 ## 📋 Phase 1: Repository Setup
 
 ### Initialize Project Structure
-\`\`\`bash
+
+```bash
 # Verify we have the correct structure
 ls -la
 
@@ -26,12 +27,15 @@ ls -la
 # next.config.mjs
 # package.json
 # README.md
-\`\`\`
+```
 
 ### GitHub Configuration
+
 Create `.github/workflows/ci.yml`:
-\`\`\`yaml
+
+```yaml
 name: CI/CD Pipeline
+
 on:
   push:
     branches: [main, develop]
@@ -72,10 +76,11 @@ jobs:
           urls: |
             https://vantage-preview.vercel.app
           uploadArtifacts: true
-\`\`\`
+```
 
 Create `.github/PULL_REQUEST_TEMPLATE.md`:
-\`\`\`markdown
+
+```markdown
 ## 🎯 What does this PR do?
 
 Brief description of changes
@@ -99,11 +104,13 @@ Brief description of changes
 ## 📸 Screenshots
 
 (if applicable)
-\`\`\`
+```
 
 ### Git Hygiene
+
 Create `.gitattributes`:
-\`\`\`
+
+```
 * text=auto eol=lf
 *.{cmd,[cC][mM][dD]} text eol=crlf
 *.{bat,[bB][aA][tT]} text eol=crlf
@@ -132,10 +139,11 @@ Create `.gitattributes`:
 *.ez binary
 *.bz2 binary
 *.swp binary
-\`\`\`
+```
 
 Update `.gitignore`:
-\`\`\`
+
+```
 # dependencies
 node_modules
 .pnp
@@ -178,21 +186,24 @@ next-env.d.ts
 # Cursor
 .cursor
 .cursorignore
-\`\`\`
+```
 
 ---
 
 ## 🗄️ Phase 2: Supabase Setup
 
 ### Create Supabase Project
+
 1. Go to [database.new](https://database.new)
 2. Create project: "vantage-production"
 3. Save credentials to password manager
 4. Enable Realtime in Settings → API
 
 ### Database Schema
+
 Create `supabase/schema.sql`:
-\`\`\`sql
+
+```sql
 -- Enable necessary extensions
 create extension if not exists "uuid-ossp";
 
@@ -330,11 +341,13 @@ create index idx_decisions_status on public.decisions(status);
 create index idx_stakeholders_project_id on public.stakeholders(project_id);
 create index idx_briefings_project_id on public.briefings(project_id);
 create index idx_actions_project_id on public.actions(project_id);
-\`\`\`
+```
 
 ### Seed Data
+
 Create `supabase/seed.sql`:
-\`\`\`sql
+
+```sql
 -- Insert demo project
 insert into public.projects (name, description, health_score, budget_velocity, timeline_confidence)
 values (
@@ -397,11 +410,13 @@ cross join (
     ('James Wilson', 'CIO', 'jwilson@mayo.edu', 95, 'positive')
 ) as s(name, role, email, engagement, sentiment)
 limit 3;
-\`\`\`
+```
 
 ### Supabase Client Setup
+
 Create `lib/supabase/client.ts`:
-\`\`\`typescript
+
+```typescript
 import { createBrowserClient } from '@supabase/ssr'
 
 export function createClient() {
@@ -410,10 +425,11 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   )
 }
-\`\`\`
+```
 
 Create `lib/supabase/server.ts`:
-\`\`\`typescript
+
+```typescript
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 
@@ -446,11 +462,13 @@ export async function createClient() {
     }
   )
 }
-\`\`\`
+```
 
 ### Environment Variables
+
 Create `.env.local`:
-\`\`\`bash
+
+```bash
 # Supabase
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
@@ -458,24 +476,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 # AI (will be provided by Vercel AI Gateway by default)
 # Only needed if using direct API calls
 # OPENAI_API_KEY=your_openai_key
-\`\`\`
+```
 
 Create `.env.example`:
-\`\`\`bash
+
+```bash
 # Supabase Configuration
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 
 # AI Configuration (optional - Vercel AI Gateway provides by default)
 # OPENAI_API_KEY=sk-...
-\`\`\`
+```
 
 ---
 
 ## ⚙️ Phase 3: Vercel Configuration
 
 ### Create `vercel.json`
-\`\`\`json
+
+```json
 {
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
@@ -517,10 +537,11 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
     }
   ]
 }
-\`\`\`
+```
 
 ### Update `next.config.mjs`
-\`\`\`javascript
+
+```javascript
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -569,39 +590,45 @@ const nextConfig = {
 }
 
 export default nextConfig
-\`\`\`
+```
 
 ### Vercel Environment Variables Setup
+
 In Vercel Dashboard → Project Settings → Environment Variables, add:
 
 **Production:**
-\`\`\`
+
+```
 NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-production-key
 NODE_ENV=production
-\`\`\`
+```
 
 **Preview:**
-\`\`\`
+
+```
 NEXT_PUBLIC_SUPABASE_URL=https://your-staging-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-staging-key
 NODE_ENV=preview
-\`\`\`
+```
 
 **Development:**
-\`\`\`
+
+```
 NEXT_PUBLIC_SUPABASE_URL=http://localhost:54321
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-local-key
 NODE_ENV=development
-\`\`\`
+```
 
 ---
 
 ## 🎨 Phase 4: Design System Verification
 
 ### Verify Design Tokens
+
 Check `app/globals.css` has:
-\`\`\`css
+
+```css
 @theme inline {
   /* Spacing - 4px base system */
   --spacing-2: 8px;
@@ -633,10 +660,12 @@ Check `app/globals.css` has:
   --duration-slow: 500ms;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
 }
-\`\`\`
+```
 
 ### Component Checklist
+
 Verify these components exist and follow standards:
+
 - [ ] `components/mission-control-hero.tsx` - Main dashboard
 - [ ] `components/live-health-monitor.tsx` - Real-time health
 - [ ] `components/executive-briefing-engine.tsx` - Briefing generation
@@ -652,7 +681,8 @@ Verify these components exist and follow standards:
 ## 🚀 Phase 5: Deployment Checklist
 
 ### Pre-Deploy Verification
-\`\`\`bash
+
+```bash
 # 1. Type check
 npx tsc --noEmit
 
@@ -667,10 +697,11 @@ npm run start
 
 # 5. Verify no console errors
 # Open localhost:3000 and check browser console
-\`\`\`
+```
 
 ### Deploy to Vercel
-\`\`\`bash
+
+```bash
 # Install Vercel CLI
 npm i -g vercel
 
@@ -685,9 +716,10 @@ vercel
 
 # Deploy to production
 vercel --prod
-\`\`\`
+```
 
 ### Post-Deploy Verification
+
 - [ ] Visit production URL
 - [ ] Check Lighthouse score >90
 - [ ] Test on mobile device
@@ -704,6 +736,7 @@ vercel --prod
 ## 📊 Phase 6: Monitoring Setup
 
 ### Vercel Analytics
+
 1. Go to Vercel Dashboard → Analytics
 2. Enable Web Vitals tracking
 3. Set performance budgets:
@@ -712,6 +745,7 @@ vercel --prod
    - CLS < 0.1
 
 ### Supabase Monitoring
+
 1. Go to Supabase Dashboard → Reports
 2. Enable database insights
 3. Set up alerts for:
@@ -720,7 +754,8 @@ vercel --prod
    - High error rate
 
 ### Create `lib/monitoring.ts`
-\`\`\`typescript
+
+```typescript
 import { Analytics } from '@vercel/analytics/react'
 
 export function trackEvent(name: string, properties?: Record<string, any>) {
@@ -741,7 +776,14 @@ export function trackDecisionMade(decisionId: string, action: string) {
 export function trackHealthScoreChange(from: number, to: number) {
   trackEvent('health_score_change', { from, to, delta: to - from })
 }
-\`\`\`
+```
+
+### Observability checklist
+
+- **Supabase logs**: Settings → Logs → Enable ingestion for authentication + Postgres.
+- **Vercel Analytics dashboards**: Pin Vantage project dashboard and enable Slack alerts for Core Web Vitals regressions.
+- **On-call notifications**: Update `lib/notifications/` adapters with real Slack webhook + email provider once credentials are available.
+- **Smoke tests**: `/api/health` is hit automatically via CI (`smoke-test` job). Monitor artifact for failures.
 
 ---
 
@@ -766,7 +808,7 @@ Your setup is complete when:
 
 Run this checklist before considering setup complete:
 
-\`\`\`bash
+```bash
 # 1. Clone repo fresh
 git clone <your-repo-url>
 cd vantage
@@ -792,13 +834,14 @@ open http://localhost:3000
 
 # 8. Deploy
 vercel --prod
-\`\`\`
+```
 
 ---
 
 ## 🚢 You're Ready to Ship
 
 You now have:
+
 - ✅ Production-grade database schema
 - ✅ Proper Supabase client setup
 - ✅ Vercel deployment optimized
@@ -809,3 +852,4 @@ You now have:
 - ✅ Professional design system
 
 **Go replace some consultants. 🚀**
+

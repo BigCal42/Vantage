@@ -6,19 +6,31 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TrendingUp, ArrowRight, Sparkles } from 'lucide-react'
 
-export function MissionControlHero() {
-  const [healthScore, setHealthScore] = useState(87)
+interface MissionControlHeroProps {
+  projectName?: string
+  baselineHealthScore?: number
+  timelineConfidence?: number
+}
+
+export function MissionControlHero({
+  projectName,
+  baselineHealthScore = 85,
+  timelineConfidence = 87,
+}: MissionControlHeroProps) {
+  const [healthScore, setHealthScore] = useState(baselineHealthScore)
 
   useEffect(() => {
     const interval = setInterval(() => {
       setHealthScore(prev => {
         const change = (Math.random() - 0.5) * 0.3
-        return Math.max(82, Math.min(95, prev + change))
+        const target = baselineHealthScore
+        const eased = prev + (target - prev) * 0.05 + change
+        return Math.max(0, Math.min(100, eased))
       })
     }, 8000)
 
     return () => clearInterval(interval)
-  }, [])
+  }, [baselineHealthScore])
 
   const getHealthColor = (score: number) => {
     if (score >= 85) return 'text-success'
@@ -29,18 +41,18 @@ export function MissionControlHero() {
   return (
     <Card className="border-2 shadow-lg overflow-hidden relative contain-paint">
       <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/3 pointer-events-none" />
-      
+
       <div className="p-8 space-y-8 relative">
         <div className="text-center space-y-6">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-muted border" aria-live="polite">
             <div className="size-1.5 rounded-full bg-success animate-health-pulse" />
             <span className="text-small text-muted-foreground font-medium">
-              Live • Updated 8s ago
+              Live • {projectName ?? 'Portfolio Health'}
             </span>
           </div>
 
           <div className="space-y-3">
-            <div 
+            <div
               className={`text-[120px] leading-none font-semibold tabular transition-colors duration-500 ${getHealthColor(healthScore)}`}
               style={{ willChange: 'color' }}
             >
@@ -48,11 +60,11 @@ export function MissionControlHero() {
             </div>
             <div className="flex items-center justify-center gap-3">
               <Badge className="bg-success/10 text-success border-success/30 text-base px-4 py-1.5">
-                Excellent Health
+                {healthScore >= 85 ? 'Excellent Health' : healthScore >= 70 ? 'Healthy' : 'Needs Attention'}
               </Badge>
               <div className="flex items-center gap-1.5 text-success">
                 <TrendingUp className="size-4" />
-                <span className="text-small font-medium">+2.1% this week</span>
+                <span className="text-small font-medium">Tracking {projectName ?? 'portfolio'}</span>
               </div>
             </div>
           </div>
@@ -73,8 +85,8 @@ export function MissionControlHero() {
           />
           <MetricCard
             label="Go-Live Confidence"
-            value="87%"
-            change="Oct 15, 2025"
+            value={`${Math.round(timelineConfidence)}%`}
+            change="On-track milestone"
             positive
           />
         </div>
@@ -91,12 +103,12 @@ export function MissionControlHero() {
   )
 }
 
-function MetricCard({ 
-  label, 
-  value, 
-  change, 
-  positive 
-}: { 
+function MetricCard({
+  label,
+  value,
+  change,
+  positive,
+}: {
   label: string
   value: string
   change: string

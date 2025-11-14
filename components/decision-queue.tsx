@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Target, Clock, TrendingUp, ArrowRight, AlertCircle } from 'lucide-react'
+import { trackDecisionMade } from '@/lib/monitoring'
 
 interface Decision {
   id: string
@@ -55,6 +56,10 @@ const decisions: Decision[] = [
 ]
 
 export function DecisionQueue() {
+  const handleDecision = (decisionId: string, action: string) => {
+    trackDecisionMade(decisionId, action)
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -128,14 +133,14 @@ export function DecisionQueue() {
               </div>
 
               <div className="flex gap-2">
-                <Button className="flex-1 gap-2">
+                <Button className="flex-1 gap-2" onClick={() => handleDecision(decision.id, 'decide_now')}>
                   Decide Now
                   <ArrowRight className="size-3" />
                 </Button>
-                <Button variant="outline" className="flex-1">
+                <Button variant="outline" className="flex-1" onClick={() => handleDecision(decision.id, 'need_more_data')}>
                   Need More Data
                 </Button>
-                <Button variant="ghost">
+                <Button variant="ghost" onClick={() => handleDecision(decision.id, 'defer')}>
                   Defer
                 </Button>
               </div>

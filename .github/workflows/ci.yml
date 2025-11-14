@@ -1,0 +1,66 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop, vantage-p1]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: TypeScript Check
+        run: npx tsc --noEmit
+      
+      - name: Lint
+        run: npm run lint
+      
+      - name: Build
+        run: npm run build
+        env:
+          SKIP_ENV_VALIDATION: true
+      
+      - name: Generate Supabase diff
+        id: supabase_diff
+        run: npx supabase db diff --linked > supabase-diff.sql
+        continue-on-error: true
+      
+      - name: Upload Supabase diff
+        if: steps.supabase_diff.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: supabase-schema-diff
+          path: supabase-diff.sql
+
+  lighthouse:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          urls: |
+            https://vantage-preview.vercel.app
+          uploadArtifacts: true
+
+  smoke-test:
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify Preview Health Endpoint
+        run: |
+          curl --fail --retry 3 --retry-delay 5 https://vantage-preview.vercel.app/api/health
+

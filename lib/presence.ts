@@ -30,14 +30,15 @@ export function usePresence(projectId: string) {
     localUser: {
       id: 'local-user',
       name: 'You',
-      color: COLORS[0],
+      color: COLORS[0] ?? 'hsl(210, 100%, 50%)',
       lastSeen: Date.now(),
     }
   })
 
   useEffect(() => {
     // Initialize local user with random color
-    const color = COLORS[Math.floor(Math.random() * COLORS.length)]
+    const colorIndex = Math.floor(Math.random() * COLORS.length)
+    const color = COLORS[colorIndex] ?? COLORS[0] ?? 'hsl(210, 100%, 50%)'
     const localUser: PresenceUser = {
       id: `user-${Math.random().toString(36).substr(2, 9)}`,
       name: 'Anonymous',
@@ -55,12 +56,20 @@ export function usePresence(projectId: string) {
         // Randomly add/remove simulated users
         if (Math.random() > 0.7 && users.size < 3) {
           const id = `user-${Math.random().toString(36).substr(2, 9)}`
+          const names = ['Alex', 'Jordan', 'Taylor', 'Morgan']
+          const views = ['feed', 'decisions', 'tensions']
+          const nameIndex = Math.floor(Math.random() * names.length)
+          const colorIndex = Math.floor(Math.random() * COLORS.length)
+          const viewIndex = Math.floor(Math.random() * views.length)
+          const name = names[nameIndex] ?? 'Anonymous'
+          const color = COLORS[colorIndex] ?? COLORS[0] ?? 'hsl(210, 100%, 50%)'
+          const currentView = views[viewIndex] ?? 'feed'
           users.set(id, {
             id,
-            name: ['Alex', 'Jordan', 'Taylor', 'Morgan'][Math.floor(Math.random() * 4)],
-            color: COLORS[Math.floor(Math.random() * COLORS.length)],
+            name,
+            color,
             lastSeen: Date.now(),
-            currentView: ['feed', 'decisions', 'tensions'][Math.floor(Math.random() * 3)]
+            currentView
           })
         }
 

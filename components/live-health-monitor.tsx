@@ -1,10 +1,12 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { TrendingUp, TrendingDown, AlertTriangle, CheckCircle2, Clock, DollarSign, Users, Zap, Activity } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
+import type { HealthMetricRecord } from '@/lib/data/projects'
 
 interface HealthMetric {
   label: string
@@ -14,27 +16,57 @@ interface HealthMetric {
   changePercent: number
 }
 
-export function LiveHealthMonitor() {
-  const [healthScore, setHealthScore] = useState(87)
-  const [lastUpdate, setLastUpdate] = useState(new Date())
+interface LiveHealthMonitorProps {
+  projectId?: string
+  initialData?: HealthMetricRecord[]
+  healthMetrics?: HealthMetricRecord[]
+}
+
+export function LiveHealthMonitor({ projectId, initialData, healthMetrics: propHealthMetrics }: LiveHealthMonitorProps) {
+  const [healthMetrics, setHealthMetrics] = useState<HealthMetricRecord[]>(initialData ?? propHealthMetrics ?? [])
+  const latestMetric = healthMetrics[0]
+  const [healthScore, setHealthScore] = useState(latestMetric?.health_score ?? 0)
+  const [lastUpdate, setLastUpdate] = useState(latestMetric?.recorded_at ? new Date(latestMetric.recorded_at) : new Date())
   const [scanning, setScanning] = useState(false)
 
-  // Simulate continuous monitoring with micro-updates
+  // Supabase realtime subscription
   useEffect(() => {
-    const interval = setInterval(() => {
-      // Simulate small fluctuations in health score
-      setHealthScore(prev => {
-        const change = (Math.random() - 0.5) * 2
-        const newScore = Math.max(0, Math.min(100, prev + change))
-        return Math.round(newScore * 10) / 10 // More precise scoring
-      })
-      setLastUpdate(new Date())
-    }, 30000)
+    if (!projectId) return
 
-    return () => clearInterval(interval)
-  }, [])
+    const supabase = createClient()
+    const channel = supabase
+      .channel(`health-metrics:${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'health_metrics',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+            const newMetric = payload.new as HealthMetricRecord
+            setHealthMetrics((prev) => {
+              const updated = [newMetric, ...prev.filter((m) => m.id !== newMetric.id)]
+              return updated.slice(0, 10) // Keep last 10 metrics
+            })
+          }
+        }
+      )
+      .subscribe()
 
-  // Periodic "scanning" animation
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [projectId])
+
+  useEffect(() => {
+    if (!latestMetric) return
+    setHealthScore(latestMetric.health_score)
+    setLastUpdate(new Date(latestMetric.recorded_at))
+  }, [latestMetric?.health_score, latestMetric?.recorded_at, latestMetric])
+
   useEffect(() => {
     const scanInterval = setInterval(() => {
       setScanning(true)
@@ -47,36 +79,46 @@ export function LiveHealthMonitor() {
     return () => clearInterval(scanInterval)
   }, [])
 
-  const metrics: HealthMetric[] = [
-    {
-      label: 'Timeline',
-      value: 92,
-      trend: 'up',
-      status: 'good',
-      changePercent: 3
-    },
-    {
-      label: 'Budget',
-      value: 78,
-      trend: 'down',
-      status: 'warning',
-      changePercent: -5
-    },
-    {
-      label: 'Resources',
-      value: 85,
-      trend: 'stable',
-      status: 'good',
-      changePercent: 0
-    },
-    {
-      label: 'Risk',
-      value: 67,
-      trend: 'up',
-      status: 'warning',
-      changePercent: 8
+  const metrics: HealthMetric[] = useMemo(() => {
+    if (!latestMetric) {
+      return []
     }
-  ]
+
+    const budgetVelocity = latestMetric.budget_velocity ?? 0
+    const resourceGaps = latestMetric.resource_gaps ?? 0
+    const vendorRisks = latestMetric.vendor_risks ?? 0
+
+    return [
+      {
+        label: 'Timeline',
+        value: latestMetric.health_score,
+        trend: latestMetric.health_score >= healthScore ? 'up' : 'down',
+        status: latestMetric.health_score >= 80 ? 'good' : latestMetric.health_score >= 60 ? 'warning' : 'critical',
+        changePercent: Math.round((latestMetric.health_score - healthScore) * 10) / 10,
+      },
+      {
+        label: 'Budget',
+        value: Math.max(0, Math.min(100, 100 - Math.abs(budgetVelocity))),
+        trend: budgetVelocity <= 0 ? 'up' : 'down',
+        status: budgetVelocity <= 10 ? 'good' : budgetVelocity <= 20 ? 'warning' : 'critical',
+        changePercent: Math.round(budgetVelocity),
+      },
+      {
+        label: 'Resources',
+        value: Math.max(0, 100 - resourceGaps * 5),
+        trend: resourceGaps <= 2 ? 'stable' : 'down',
+        status: resourceGaps <= 2 ? 'good' : resourceGaps <= 4 ? 'warning' : 'critical',
+        changePercent: -resourceGaps,
+      },
+      {
+        label: 'Risk',
+        value: Math.max(0, 100 - vendorRisks * 10),
+        trend: vendorRisks <= 1 ? 'up' : 'down',
+        status: vendorRisks === 0 ? 'good' : vendorRisks <= 2 ? 'warning' : 'critical',
+        changePercent: -vendorRisks * 4,
+      },
+    ]
+  }, [healthScore, latestMetric])
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -96,6 +138,17 @@ export function LiveHealthMonitor() {
     }
   }
 
+  if (!latestMetric) {
+    return (
+      <Card className="border-2 p-6">
+        <div className="flex flex-col gap-4 items-center text-center text-muted-foreground">
+          <Activity className="size-6" />
+          <p>No health data yet. Push your first Supabase metrics via the /api/projects/[id]/health endpoint.</p>
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card className="border-2 shadow-xl overflow-hidden relative">
       {scanning && (
@@ -105,7 +158,7 @@ export function LiveHealthMonitor() {
       )}
 
       <div className="p-6 space-y-6">
-        <div className="flex items-start justify-between">
+        <div className="flex items-start justify-between" aria-live="polite">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <Activity className="size-5 text-primary" />
@@ -113,7 +166,9 @@ export function LiveHealthMonitor() {
             </div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground">
               <div className="size-1.5 rounded-full bg-success animate-pulse-glow" />
-              <span>Live • Updated {Math.floor((Date.now() - lastUpdate.getTime()) / 1000)}s ago</span>
+              <span>
+                Live • Updated {Math.max(0, Math.floor((Date.now() - lastUpdate.getTime()) / 1000))}s ago
+              </span>
             </div>
           </div>
           <Badge variant="outline" className={`${getStatusBg(healthScore >= 80 ? 'good' : healthScore >= 60 ? 'warning' : 'critical')} text-lg font-bold px-3 py-1`}>

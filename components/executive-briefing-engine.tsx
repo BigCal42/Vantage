@@ -7,15 +7,17 @@ import { Badge } from '@/components/ui/badge'
 import { Textarea } from '@/components/ui/textarea'
 import { FileText, Send, Download, Calendar, Edit3, Sparkles, Clock, User, TrendingUp, AlertTriangle, CheckCircle2, Mail, FileDown, Presentation } from 'lucide-react'
 import { toast } from 'sonner'
+import { trackBriefingGenerated, trackDecisionMade } from '@/lib/monitoring'
+import { useViewport } from '@/lib/hooks/use-viewport'
 
-interface Stakeholder {
+export interface StakeholderProfile {
   id: string
   name: string
   role: string
   avatar: string
   focusAreas: string[]
   preferredFormat: 'detailed' | 'summary' | 'visual'
-  lastBriefing: string
+  lastBriefing: string | null
 }
 
 interface BriefingSection {
@@ -25,42 +27,34 @@ interface BriefingSection {
   editable: boolean
 }
 
-const stakeholders: Stakeholder[] = [
-  {
-    id: 'cfo',
-    name: 'Jennifer Martinez',
-    role: 'CFO',
-    avatar: 'JM',
-    focusAreas: ['Budget', 'ROI', 'Cash Flow'],
-    preferredFormat: 'summary',
-    lastBriefing: '3 days ago'
-  },
-  {
-    id: 'cio',
-    name: 'David Chen',
-    role: 'CIO',
-    avatar: 'DC',
-    focusAreas: ['Architecture', 'Security', 'Integration'],
-    preferredFormat: 'detailed',
-    lastBriefing: '1 week ago'
-  },
-  {
-    id: 'ceo',
-    name: 'Sarah Williams',
-    role: 'CEO',
-    avatar: 'SW',
-    focusAreas: ['Timeline', 'Risk', 'Strategic Impact'],
-    preferredFormat: 'visual',
-    lastBriefing: '2 days ago'
-  }
-]
+interface ExecutiveBriefingEngineProps {
+  stakeholders: StakeholderProfile[]
+}
 
-export function ExecutiveBriefingEngine() {
-  const [selectedStakeholder, setSelectedStakeholder] = useState<Stakeholder>(stakeholders[0])
+export function ExecutiveBriefingEngine({ stakeholders }: ExecutiveBriefingEngineProps) {
+  const viewport = useViewport()
+  const [selectedStakeholder, setSelectedStakeholder] = useState<StakeholderProfile | null>(stakeholders[0] ?? null)
   const [generating, setGenerating] = useState(false)
   const [generated, setGenerated] = useState(false)
   const [editMode, setEditMode] = useState(false)
   const [briefingSections, setBriefingSections] = useState<BriefingSection[]>([])
+
+  useEffect(() => {
+    setSelectedStakeholder(stakeholders[0] ?? null)
+    setGenerated(false)
+  }, [stakeholders])
+
+  if (stakeholders.length === 0) {
+    return (
+      <Card className="border-dashed border-2 p-6 text-center text-muted-foreground">
+        No stakeholders yet. Add stakeholder records in Supabase to generate briefings.
+      </Card>
+    )
+  }
+
+  if (!selectedStakeholder) {
+    return null
+  }
 
   const generateBriefing = async () => {
     setGenerating(true)
@@ -99,20 +93,23 @@ export function ExecutiveBriefingEngine() {
     setBriefingSections(sections)
     setGenerated(true)
     setGenerating(false)
-    
+
     toast.success('Briefing generated for ' + selectedStakeholder.name)
+    trackBriefingGenerated(selectedStakeholder.name)
   }
 
   const handleSendBriefing = () => {
     toast.success('Briefing sent to ' + selectedStakeholder.name, {
       description: 'Delivered via email with read receipt tracking'
     })
+    trackDecisionMade(selectedStakeholder.id, 'briefing_sent')
   }
 
   const handleScheduleMeeting = () => {
     toast.success('Meeting scheduled with ' + selectedStakeholder.name, {
       description: 'Calendar invite sent for tomorrow 2pm (30 minutes)'
     })
+    trackDecisionMade(selectedStakeholder.id, 'briefing_meeting_scheduled')
   }
 
   const handleExport = (format: 'pdf' | 'pptx' | 'email') => {
@@ -120,6 +117,7 @@ export function ExecutiveBriefingEngine() {
     toast.success(`Exported as ${formatNames[format]}`, {
       description: 'Download starting...'
     })
+    trackDecisionMade(selectedStakeholder.id, `briefing_export_${format}`)
   }
 
   return (
@@ -146,7 +144,7 @@ export function ExecutiveBriefingEngine() {
           <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             Select Stakeholder
           </label>
-          <div className="grid grid-cols-3 gap-2">
+          <div className={`grid gap-2 ${viewport.isMobile ? 'grid-cols-1' : 'grid-cols-3'}`}>
             {stakeholders.map(stakeholder => (
               <button
                 key={stakeholder.id}
@@ -154,11 +152,12 @@ export function ExecutiveBriefingEngine() {
                   setSelectedStakeholder(stakeholder)
                   setGenerated(false)
                 }}
-                className={`p-3 rounded-lg border-2 text-left transition-all ${
+                className={`p-3 rounded-lg border-2 text-left transition-all min-h-[44px] ${
                   selectedStakeholder.id === stakeholder.id
                     ? 'border-primary bg-primary/5'
                     : 'border-border hover:border-primary/50 hover:bg-muted/50'
                 }`}
+                aria-pressed={selectedStakeholder.id === stakeholder.id}
               >
                 <div className="flex items-start gap-2">
                   <div className="size-10 rounded-full bg-primary/20 flex items-center justify-center font-bold text-sm text-primary flex-shrink-0">
@@ -168,7 +167,7 @@ export function ExecutiveBriefingEngine() {
                     <div className="font-medium text-sm truncate">{stakeholder.name}</div>
                     <div className="text-xs text-muted-foreground">{stakeholder.role}</div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      Last: {stakeholder.lastBriefing}
+                      Last: {stakeholder.lastBriefing ?? 'No briefings yet'}
                     </div>
                   </div>
                 </div>
@@ -194,7 +193,7 @@ export function ExecutiveBriefingEngine() {
         {/* Generate Button */}
         {!generated && (
           <Button 
-            className="w-full gap-2 group h-12" 
+            className="w-full gap-2 group min-h-[44px]" 
             size="lg"
             onClick={generateBriefing}
             disabled={generating}
@@ -275,10 +274,10 @@ export function ExecutiveBriefingEngine() {
             </div>
 
             {/* Action Buttons */}
-            <div className="grid grid-cols-2 gap-2">
+            <div className={`grid gap-2 ${viewport.isMobile ? 'grid-cols-1' : 'grid-cols-2'}`}>
               <Button
                 variant="default"
-                className="gap-2 h-11"
+                className="gap-2 min-h-[44px]"
                 onClick={handleSendBriefing}
               >
                 <Send className="size-4" />
@@ -286,7 +285,7 @@ export function ExecutiveBriefingEngine() {
               </Button>
               <Button
                 variant="outline"
-                className="gap-2 h-11"
+                className="gap-2 min-h-[44px]"
                 onClick={handleScheduleMeeting}
               >
                 <Calendar className="size-4" />
@@ -295,11 +294,11 @@ export function ExecutiveBriefingEngine() {
             </div>
 
             {/* Export Options */}
-            <div className="flex gap-2">
+            <div className={`flex gap-2 ${viewport.isMobile ? 'flex-col' : ''}`}>
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1 flex-1"
+                className={`gap-1 min-h-[44px] ${viewport.isMobile ? 'w-full' : 'flex-1'}`}
                 onClick={() => handleExport('pdf')}
               >
                 <FileDown className="size-3" />
@@ -308,7 +307,7 @@ export function ExecutiveBriefingEngine() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1 flex-1"
+                className={`gap-1 min-h-[44px] ${viewport.isMobile ? 'w-full' : 'flex-1'}`}
                 onClick={() => handleExport('pptx')}
               >
                 <Presentation className="size-3" />
@@ -317,7 +316,7 @@ export function ExecutiveBriefingEngine() {
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-1 flex-1"
+                className={`gap-1 min-h-[44px] ${viewport.isMobile ? 'w-full' : 'flex-1'}`}
                 onClick={() => handleExport('email')}
               >
                 <Mail className="size-3" />
@@ -327,7 +326,7 @@ export function ExecutiveBriefingEngine() {
 
             <Button
               variant="outline"
-              className="w-full gap-2"
+              className="w-full gap-2 min-h-[44px]"
               onClick={() => {
                 setGenerated(false)
                 toast.info('Ready to generate new briefing')

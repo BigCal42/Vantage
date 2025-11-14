@@ -1,0 +1,40 @@
+# Documentation
+docs/
+*.md
+!README.md
+
+# Supabase (not needed for build)
+supabase/
+
+# Tests
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+__tests__/
+tests/
+
+# Development files
+.env.example
+.cursorrules
+CURSOR_SETUP.md
+CURSOR_PROMPT.md
+CURSOR_BUILD_FIX.md
+IMPLEMENTATION_SUMMARY.md
+QUICKSTART.md
+
+# Git
+.git/
+.github/workflows/
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Scripts (not needed for runtime)
+scripts/
+

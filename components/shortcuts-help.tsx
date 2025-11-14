@@ -27,24 +27,28 @@ export function ShortcutsHelp() {
             <DialogTitle>Keyboard Shortcuts</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {Object.entries(SHORTCUTS).map(([name, config]) => (
-              <div key={name} className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">
-                  {config.description}
-                </span>
-                <div className="flex items-center gap-1">
-                  {config.meta && (
-                    <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded">⌘</kbd>
-                  )}
-                  {config.shift && (
-                    <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded">⇧</kbd>
-                  )}
-                  <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded">
-                    {config.key.toUpperCase()}
-                  </kbd>
+            {Object.entries(SHORTCUTS).map(([name, config]) => {
+              const hasMeta = 'meta' in config && config.meta
+              const hasShift = 'shift' in config && config.shift
+              return (
+                <div key={name} className="flex items-center justify-between">
+                  <span className="text-sm text-muted-foreground">
+                    {config.description}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    {hasMeta && (
+                      <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded">⌘</kbd>
+                    )}
+                    {hasShift && (
+                      <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded">⇧</kbd>
+                    )}
+                    <kbd className="px-2 py-1 text-xs font-semibold bg-muted rounded">
+                      {config.key.toUpperCase()}
+                    </kbd>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </DialogContent>
       </Dialog>

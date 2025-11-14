@@ -59,11 +59,20 @@ Open [http://localhost:3000](http://localhost:3000) to view the application.
 
 ## Environment Variables
 
-No environment variables required for demo mode. For production:
+For full functionality with GitHub, Vercel, and Supabase integrations:
 
-\`\`\`env
-# Add your integration keys here
-\`\`\`
+1. Copy the template from `docs/ENV_TEMPLATE.md`
+2. Create `.env.local` in the project root
+3. Fill in your credentials
+4. Run `npm run test:connections` to verify
+
+See [SETUP.md](docs/SETUP.md) for detailed configuration instructions.
+
+For production setup with complete database schema and deployment automation, see [CURSOR_SETUP.md](CURSOR_SETUP.md).
+
+## Feature Guides
+
+- [Health Monitoring Playbook](docs/HEALTH_MONITORING.md)
 
 ## Performance
 

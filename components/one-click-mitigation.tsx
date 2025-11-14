@@ -5,6 +5,8 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Zap, CheckCircle2, Clock, DollarSign, Users, TrendingUp, Sparkles } from 'lucide-react'
+import { sendNotification } from '@/lib/notifications'
+import { useOptimisticUpdate } from '@/lib/utils/optimistic'
 
 interface MitigationOption {
   id: string
@@ -17,9 +19,27 @@ interface MitigationOption {
   recommended: boolean
 }
 
-export function OneClickMitigation({ riskTitle }: { riskTitle: string }) {
-  const [executing, setExecuting] = useState<string | null>(null)
+export function OneClickMitigation({ riskTitle, actionId }: { riskTitle: string; actionId?: string }) {
   const [executed, setExecuted] = useState<string | null>(null)
+  
+  const { execute: executeAction, isPending } = useOptimisticUpdate(
+    async (actionId: string) => {
+      const response = await fetch(`/api/actions/${actionId}/execute`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      })
+      if (!response.ok) {
+        throw new Error('Failed to execute action')
+      }
+      return response.json()
+    },
+    () => {
+      // Success callback
+    },
+    (error) => {
+      console.error('Action execution failed:', error)
+    }
+  )
 
   const options: MitigationOption[] = [
     {
@@ -55,11 +75,43 @@ export function OneClickMitigation({ riskTitle }: { riskTitle: string }) {
   ]
 
   const handleExecute = async (optionId: string) => {
-    setExecuting(optionId)
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000))
-    setExecuting(null)
+    const option = options.find(opt => opt.id === optionId)
+    if (!option) return
+
+    // Optimistic update: immediately show as executed
     setExecuted(optionId)
+
+    try {
+      // Execute via API if actionId provided, otherwise simulate
+      if (actionId) {
+        await executeAction(actionId, () => {
+          // Optimistic update callback - already handled by setExecuted above
+        })
+      } else {
+        // Simulate API call for demo
+        await new Promise(resolve => setTimeout(resolve, 1000))
+      }
+
+      // Send notifications
+      await Promise.all([
+        sendNotification({
+          channel: 'slack',
+          subject: `Mitigation executed: ${option.title}`,
+          body: `Risk "${riskTitle}" now running: ${option.description}`,
+          metadata: { optionId },
+        }),
+        sendNotification({
+          channel: 'email',
+          subject: `Mitigation confirmation for ${riskTitle}`,
+          body: `${option.title} has been scheduled. Impact: ${option.impact}, Cost: ${option.cost}`,
+          metadata: { optionId },
+        }),
+      ])
+    } catch (error) {
+      // Revert optimistic update on error
+      setExecuted(null)
+      throw error
+    }
   }
 
   return (
@@ -136,10 +188,10 @@ export function OneClickMitigation({ riskTitle }: { riskTitle: string }) {
                 size="sm"
                 className="w-full gap-2"
                 variant={option.recommended ? 'default' : 'outline'}
-                disabled={executing !== null || executed === option.id}
+                disabled={isPending || executed === option.id}
                 onClick={() => handleExecute(option.id)}
               >
-                {executing === option.id ? (
+                {isPending && executed === option.id ? (
                   <>
                     <div className="size-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                     Executing...

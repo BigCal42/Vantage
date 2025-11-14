@@ -6,6 +6,7 @@ import { MainNavigation } from '@/components/main-navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 import { Stethoscope, Sparkles, AlertTriangle, TrendingDown, Users, DollarSign, ArrowRight } from 'lucide-react'
 
 export default function DiagnosePage() {

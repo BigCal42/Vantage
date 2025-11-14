@@ -1,0 +1,613 @@
+# Vantage Mission Control - Cursor AI Development Rules
+
+You are building Vantage, the AI-powered transformation intelligence platform that replaces $10M+ management consulting engagements with autonomous software. This is a category-defining B2B enterprise product for U.S. healthcare systems.
+
+## 🎯 Product Vision
+
+**What We're Building:**
+
+Vantage eliminates the need for expensive management consultants by providing real-time transformation governance, predictive risk detection, and one-click mitigations. The Mayo Clinic CIO should see this and think: "Why am I paying McKinsey $10M when this does it 100x faster?"
+
+**Core Value Proposition:**
+
+- Real-time health monitoring (not weekly status reports)
+- Predictive risk detection (6 weeks before crisis)
+- One-click mitigations (not PowerPoint recommendations)
+- Automated executive briefings (not manual deck creation)
+- Ambient intelligence (lives in Slack/Email, not another destination)
+
+**Target User:** Enterprise healthcare CIOs, PMO directors, transformation leaders
+**Competitive Context:** Replacing McKinsey, Deloitte, Accenture consulting engagements
+**Success Metric:** Sub-200ms interactions, predictive accuracy, zero setup time
+
+## 🏗️ Architecture Principles
+
+### Framework Stack
+
+- **Next.js 16** with App Router (React Server Components by default)
+- **React 19.2** with React Compiler enabled
+- **TypeScript strict mode** (no shortcuts, types are documentation)
+- **Tailwind CSS v4** (no arbitrary values, use design system)
+- **Supabase** for database, auth, real-time (when credentials configured)
+
+### Code Quality Standards
+
+1. **No `any` types** - Explicit types or `unknown` with guards
+2. **Server Components first** - Only use 'use client' when necessary (interactivity, hooks, browser APIs)
+3. **No inline styles** - Use Tailwind classes from design system
+4. **Async where possible** - Leverage React 19 async components
+5. **Error boundaries** - Wrap suspenseful content properly
+6. **Type safety** - All props, returns, and state must be typed
+7. **Accessibility** - ARIA labels, keyboard navigation, focus management
+
+### Component Architecture
+
+```
+app/                    # Next.js App Router (Server Components by default)
+├── page.tsx           # Server Component unless needs interactivity
+├── layout.tsx         # Always Server Component
+└── [route]/
+    └── page.tsx       # Route pages
+
+components/
+├── ui/                # shadcn/ui base components (reusable)
+├── primitives/        # Layout primitives (Container, Section, Stack)
+└── [feature]/         # Feature-specific components (business logic)
+```
+
+**Component Rules:**
+- Server Components by default (no 'use client' unless needed)
+- Client Components only for: hooks, event handlers, browser APIs, animations
+- Use dynamic imports for heavy client components: `dynamic(() => import(...), { ssr: false })`
+- Co-locate related components in feature folders
+- Export components as named exports: `export function ComponentName() {}`
+
+## 🎨 Design System (Strict Rules)
+
+### Typography
+
+**ONLY use these font sizes from design tokens:**
+
+```typescript
+// From lib/design-tokens.ts and globals.css
+text-xs      // 12px - Labels, captions
+text-sm      // 14px - Body text, secondary content
+text-base    // 16px - Primary content (default)
+text-lg      // 18px - Section headings
+text-xl      // 20px - Page headings
+text-2xl     // 24px - Large headings
+text-3xl     // 30px - Hero subheadings
+text-4xl     // 36px - Hero headings
+text-5xl     // 48px - Display text
+text-6xl     // 60px - Hero metrics ONLY
+```
+
+**Font weights:**
+- `font-normal` (400) - Body text
+- `font-medium` (500) - Emphasis
+- `font-semibold` (600) - Headings
+- `font-bold` (700) - Hero text only
+
+**Line heights:** Use Tailwind defaults (don't override unless necessary)
+
+**Font families:**
+- `font-sans` - Default (Geist Sans)
+- `font-mono` - Code, metrics (Geist Mono)
+
+### Spacing System
+
+**ONLY use these spacing values (4px base):**
+
+```typescript
+// From design-tokens.ts
+p-1, m-1      // 4px
+p-2, m-2      // 8px
+p-3, m-3      // 12px
+p-4, m-4      // 16px
+p-6, m-6      // 24px
+p-8, m-8      // 32px
+p-12, m-12    // 48px
+p-16, m-16    // 64px
+p-24, m-24    // 96px
+```
+
+**Gap spacing:** Use `gap-{size}` with same values above
+**No arbitrary values:** `p-[13px]` is FORBIDDEN
+
+### Color System
+
+**ONLY use these semantic colors:**
+
+```typescript
+// Backgrounds
+bg-background          // Main background
+bg-muted               // Subtle backgrounds
+bg-card                // Card backgrounds
+bg-popover             // Popover/dropdown backgrounds
+
+// Text
+text-foreground        // Primary text
+text-muted-foreground  // Secondary text
+text-primary           // Accent text
+
+// Borders
+border-border          // Default borders
+border-primary         // Accent borders
+
+// Semantic
+bg-success / text-success      // Success states
+bg-warning / text-warning      // Warning states
+bg-destructive / text-destructive // Error/danger states
+
+// Primary accent (Trust Blue)
+bg-primary / text-primary
+bg-primary-foreground / text-primary-foreground
+```
+
+**Color values:** Defined in `app/globals.css` using OKLCH color space
+- Light mode: High contrast, clean whites
+- Dark mode: Deep blacks, pure whites (enterprise dashboard style)
+
+**NO arbitrary colors:** `bg-[#ff0000]` is FORBIDDEN
+**NO hex colors:** Use semantic tokens only
+
+### Border Radius
+
+```typescript
+rounded-sm      // 8px
+rounded-md      // 12px (default)
+rounded-lg      // 16px
+rounded-xl      // 24px
+rounded-full    // 9999px (pills, avatars)
+```
+
+### Shadows
+
+```typescript
+shadow-sm       // Subtle elevation
+shadow-md       // Default cards
+shadow-lg       // Elevated cards
+shadow-xl       // Modals, popovers
+shadow-2xl      // Maximum elevation
+```
+
+### Transitions & Animations
+
+**Timing functions:** Use `transition-{property}` with default easing
+**Duration:** Default 200ms, use `duration-{ms}` only when necessary
+**Animations:** Use predefined animations from `globals.css`:
+- `animate-fade-in` - Fade in
+- `animate-slide-up` - Slide up with fade
+- `animate-scale-in` - Scale in
+- `animate-health-pulse` - Health indicator pulse
+
+**Performance:**
+- Add `will-animate` class for GPU acceleration
+- Use `contain-paint` for isolated components
+- Respect `prefers-reduced-motion`
+
+### Responsive Design
+
+**Breakpoints (from design-tokens.ts):**
+```typescript
+sm: 640px   // Mobile landscape
+md: 768px   // Tablet
+lg: 1024px  // Desktop
+xl: 1280px  // Large desktop
+2xl: 1536px // Extra large
+```
+
+**Mobile-first approach:**
+- Default styles for mobile
+- Use `md:`, `lg:`, `xl:` prefixes for larger screens
+- Test on mobile viewport first
+
+## 📐 Layout Patterns
+
+### Container Patterns
+
+```typescript
+// Use primitives from components/primitives/
+<Container>        // Max-width container with padding
+<Section>         // Section wrapper with spacing
+<Stack>           // Vertical stack with gap
+```
+
+### Grid Patterns
+
+```typescript
+// Use Tailwind grid utilities
+grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4
+```
+
+### Flex Patterns
+
+```typescript
+// Common flex patterns
+flex items-center justify-between gap-4
+flex flex-col gap-6
+```
+
+## 🎭 Component Patterns
+
+### Server Component Pattern
+
+```typescript
+// app/feature/page.tsx
+import { ClientComponent } from '@/components/client-component'
+
+export default async function FeaturePage() {
+  // Fetch data server-side
+  const data = await fetchData()
+  
+  return (
+    <div>
+      <h1>{data.title}</h1>
+      <ClientComponent data={data} />
+    </div>
+  )
+}
+```
+
+### Client Component Pattern
+
+```typescript
+// components/feature-component.tsx
+'use client'
+
+import { useState } from 'react'
+import { Button } from '@/components/ui/button'
+
+interface FeatureComponentProps {
+  initialValue: string
+}
+
+export function FeatureComponent({ initialValue }: FeatureComponentProps) {
+  const [value, setValue] = useState(initialValue)
+  
+  return (
+    <div className="p-4 bg-card rounded-md">
+      <Button onClick={() => setValue('new')}>
+        Update
+      </Button>
+    </div>
+  )
+}
+```
+
+### Form Pattern
+
+```typescript
+'use client'
+
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+
+const schema = z.object({
+  name: z.string().min(1, 'Required'),
+  email: z.string().email('Invalid email'),
+})
+
+type FormData = z.infer<typeof schema>
+
+export function FormComponent() {
+  const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  })
+  
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      {/* Form fields */}
+    </form>
+  )
+}
+```
+
+### Loading States
+
+```typescript
+// Use Suspense boundaries
+import { Suspense } from 'react'
+
+<Suspense fallback={<Skeleton />}>
+  <AsyncComponent />
+</Suspense>
+
+// Skeleton pattern
+function Skeleton() {
+  return (
+    <div className="h-32 bg-muted/50 animate-pulse rounded-xl" />
+  )
+}
+```
+
+### Error Handling
+
+```typescript
+// Error boundary pattern
+'use client'
+
+import { ErrorBoundary } from 'react-error-boundary'
+
+function ErrorFallback({ error }: { error: Error }) {
+  return (
+    <div className="p-4 bg-destructive/10 text-destructive rounded-md">
+      <p>Something went wrong: {error.message}</p>
+    </div>
+  )
+}
+
+<ErrorBoundary FallbackComponent={ErrorFallback}>
+  <Component />
+</ErrorBoundary>
+```
+
+## 🔌 Integration Patterns
+
+### Supabase Client Pattern
+
+```typescript
+// Server Component
+import { supabaseServer } from '@/lib/supabase/server'
+
+export default async function Page() {
+  const { data, error } = await supabaseServer
+    .from('table')
+    .select('*')
+  
+  if (error) throw error
+  return <div>{/* Render data */}</div>
+}
+
+// Client Component
+'use client'
+import { supabase } from '@/lib/supabase/client'
+import { useEffect, useState } from 'react'
+
+export function ClientComponent() {
+  const [data, setData] = useState([])
+  
+  useEffect(() => {
+    supabase.from('table').select('*').then(({ data }) => {
+      setData(data || [])
+    })
+  }, [])
+  
+  return <div>{/* Render */}</div>
+}
+```
+
+### API Route Pattern
+
+```typescript
+// app/api/route/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+import { supabaseServer } from '@/lib/supabase/server'
+
+export async function GET(request: NextRequest) {
+  try {
+    const { data, error } = await supabaseServer
+      .from('table')
+      .select('*')
+    
+    if (error) throw error
+    
+    return NextResponse.json({ data })
+  } catch (error) {
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+```
+
+## ⚡ Performance Requirements
+
+### Interaction Performance
+
+- **Target:** Sub-200ms interaction feedback
+- **Animations:** 60fps with GPU acceleration
+- **Initial Load:** < 3s on 3G connection
+- **Time to Interactive:** < 5s
+
+### Optimization Techniques
+
+1. **Code Splitting:**
+   - Use dynamic imports for heavy components
+   - Route-based code splitting (automatic with App Router)
+   - Component-level lazy loading
+
+2. **Image Optimization:**
+   - Use Next.js Image component (when configured)
+   - Lazy load images below fold
+   - Use appropriate sizes
+
+3. **Bundle Size:**
+   - Tree-shake unused code
+   - Use barrel exports carefully
+   - Monitor bundle size with `@next/bundle-analyzer`
+
+4. **Rendering:**
+   - Server Components for static content
+   - Client Components only when needed
+   - Use `will-animate` class for animations
+
+### Performance Monitoring
+
+- Vercel Analytics integrated (when configured)
+- Speed Insights integrated (when configured)
+- Monitor Core Web Vitals
+
+## 🧪 Testing Standards
+
+### Type Safety Testing
+
+- TypeScript strict mode catches most errors
+- Use type guards for runtime validation
+- Test edge cases with proper types
+
+### Component Testing (Future)
+
+```typescript
+// When test suite is added
+import { render, screen } from '@testing-library/react'
+import { Component } from './component'
+
+test('renders correctly', () => {
+  render(<Component />)
+  expect(screen.getByText('Text')).toBeInTheDocument()
+})
+```
+
+## 📝 Code Style
+
+### Naming Conventions
+
+- **Components:** PascalCase (`FeatureComponent`)
+- **Files:** kebab-case (`feature-component.tsx`)
+- **Functions:** camelCase (`handleSubmit`)
+- **Constants:** UPPER_SNAKE_CASE (`API_URL`)
+- **Types/Interfaces:** PascalCase (`UserData`)
+
+### File Organization
+
+```
+components/
+  feature-component.tsx        # Single component file
+  feature-component.test.tsx   # Tests (when added)
+  feature/
+    index.ts                  # Barrel export
+    component.tsx
+    sub-component.tsx
+```
+
+### Import Order
+
+```typescript
+// 1. React/Next.js
+import { useState } from 'react'
+import { NextRequest } from 'next/server'
+
+// 2. Third-party libraries
+import { z } from 'zod'
+import { useForm } from 'react-hook-form'
+
+// 3. Internal components
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
+
+// 4. Utilities
+import { cn } from '@/lib/utils'
+
+// 5. Types
+import type { User } from '@/types'
+```
+
+### Comments
+
+- Use JSDoc for exported functions/components
+- Explain "why" not "what"
+- Remove commented-out code before committing
+
+```typescript
+/**
+ * Calculates project health score based on multiple risk factors.
+ * Uses weighted algorithm to predict 6-week risk window.
+ */
+export function calculateHealthScore(factors: RiskFactor[]): number {
+  // Implementation
+}
+```
+
+## 🚫 Anti-Patterns (DO NOT DO)
+
+1. **NO `any` types** - Use `unknown` with type guards
+2. **NO inline styles** - Use Tailwind classes
+3. **NO arbitrary Tailwind values** - Use design system tokens
+4. **NO `console.log` in production** - Use proper logging
+5. **NO client components for static content** - Use Server Components
+6. **NO prop drilling** - Use context or server data fetching
+7. **NO missing error handling** - Wrap async operations
+8. **NO missing loading states** - Use Suspense boundaries
+9. **NO hardcoded strings** - Use constants or i18n (when added)
+10. **NO missing accessibility** - Add ARIA labels, keyboard support
+
+## 🔐 Security Standards
+
+### Environment Variables
+
+- Never commit `.env.local`
+- Use `NEXT_PUBLIC_` prefix only for client-safe values
+- Keep service role keys server-side only
+- Validate all user inputs
+
+### Data Handling
+
+- Sanitize user inputs
+- Use parameterized queries (Supabase handles this)
+- Implement Row Level Security (RLS) in Supabase
+- Validate API responses
+
+## 📚 Key Files Reference
+
+- **Design Tokens:** `lib/design-tokens.ts`
+- **Global Styles:** `app/globals.css`
+- **Utils:** `lib/utils.ts`
+- **Supabase Client:** `lib/supabase/client.ts`
+- **Supabase Server:** `lib/supabase/server.ts`
+- **Component Config:** `components.json`
+
+## 🎯 Development Workflow
+
+1. **Start with Server Component** - Only add 'use client' if needed
+2. **Use design system** - No arbitrary values
+3. **Type everything** - No `any`, explicit types
+4. **Test interactions** - Ensure <200ms feedback
+5. **Check accessibility** - Keyboard navigation, ARIA labels
+6. **Optimize performance** - Lazy load, code split
+7. **Handle errors** - Error boundaries, loading states
+
+## 💡 AI Assistant Guidelines
+
+When helping with Vantage development:
+
+1. **Always suggest Server Components first** - Only use client when necessary
+2. **Enforce design system** - Reject arbitrary values
+3. **Require type safety** - No `any` types
+4. **Prioritize performance** - Suggest optimizations
+5. **Consider accessibility** - Include ARIA and keyboard support
+6. **Follow patterns** - Use established component patterns
+7. **Check integrations** - Verify Supabase/Vercel patterns
+
+## 🚀 Quick Reference
+
+**Create a new page:**
+```typescript
+// app/new-page/page.tsx
+export default async function NewPage() {
+  return <div>Content</div>
+}
+```
+
+**Create a client component:**
+```typescript
+// components/new-component.tsx
+'use client'
+export function NewComponent() {
+  return <div>Content</div>
+}
+```
+
+**Use design system:**
+```typescript
+<div className="p-4 bg-card rounded-md text-base">
+  <h2 className="text-lg font-semibold">Title</h2>
+</div>
+```
+
+---
+
+**Remember:** Vantage replaces $10M consulting engagements. Every interaction must feel instant, every prediction must be accurate, every design decision must be intentional. Build software that makes enterprise healthcare leaders question why they ever needed consultants.
+
