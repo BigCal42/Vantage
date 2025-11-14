@@ -45,9 +45,10 @@ async function testGitHub() {
     log(`   - Private: ${data.private}`, 'blue')
     log(`   - Last Updated: ${new Date(data.updated_at).toLocaleString()}`, 'blue')
     return true
-  } catch (error: any) {
+  } catch (error: unknown) {
     log('❌ GitHub: Connection failed', 'red')
-    log(`   Error: ${error.message}`, 'red')
+    const message = error instanceof Error ? error.message : String(error)
+    log(`   Error: ${message}`, 'red')
     return false
   }
 }
@@ -94,9 +95,10 @@ async function testVercel() {
     }
     
     return true
-  } catch (error: any) {
+  } catch (error: unknown) {
     log('❌ Vercel: Connection failed', 'red')
-    log(`   Error: ${error.message}`, 'red')
+    const message = error instanceof Error ? error.message : String(error)
+    log(`   Error: ${message}`, 'red')
     return false
   }
 }
@@ -141,9 +143,10 @@ async function testSupabase() {
     }
     
     return true
-  } catch (error: any) {
+  } catch (error: unknown) {
     log('❌ Supabase: Connection failed', 'red')
-    log(`   Error: ${error.message}`, 'red')
+    const message = error instanceof Error ? error.message : String(error)
+    log(`   Error: ${message}`, 'red')
     return false
   }
 }
@@ -194,9 +197,10 @@ try {
   // dotenv not available, use process.env
 }
 
-runAllTests().catch((error) => {
+runAllTests().catch((error: unknown) => {
   log('\n❌ Test suite failed', 'red')
-  log(`Error: ${error.message}`, 'red')
+  const message = error instanceof Error ? error.message : String(error)
+  log(`Error: ${message}`, 'red')
   process.exit(1)
 })
 
